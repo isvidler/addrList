@@ -1,0 +1,20 @@
+{
+  "name": "addrlist",
+  "version": "0.1.0",
+  "description": "A protocol that allows for user-specified address lists",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isvidler/addrList.git"
+  },
+  "devDependencies": {
+    "@openzeppelin/test-helpers": "^0.5.10",
+    "truffle": "^5.3.2"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.0.0"
+  }
+}
