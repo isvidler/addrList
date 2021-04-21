@@ -12,7 +12,10 @@ contract AddrList {
     }
 
     /// @dev Stores all lists maintained by the contract
-    mapping (uint32 => AddressSet) public lists;
+    mapping (uint32 => AddressSet) private lists;
+
+    // @dev ID value assigned to newest list, incremented after use
+    uint32 private listCount;
  
     /// @notice Restrict certain list actions to list owner
     /// @param _listId The id of the list in lists to check for ownership 
@@ -21,7 +24,7 @@ contract AddrList {
         _; 
     }
 
-    /// TODO: Add events for createList and updateList
+    /// TODO: Add events for createList (ListCreated) and updateList (ListUpdated)
 
     /// @notice Creates a new list
     /// @dev Sender of the transaction is the list owner
