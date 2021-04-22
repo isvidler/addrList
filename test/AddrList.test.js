@@ -1,7 +1,8 @@
 const { expect } = require('chai')
 const { accounts, contract } = require('@openzeppelin/test-environment')
+const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers')
 
-const AddrList = contract.require('AddrList')
+const AddrList = contract.fromArtifact('AddrList')
 
 describe('AddrList', () => {
     const [ contractOwner, listOwner, listUser ] = accounts
@@ -25,43 +26,54 @@ describe('AddrList', () => {
     const extraAddress = '0x9fCE5CBE135a3c18c68B61b1f5505699B2c69Eb6'
 
     it('create a list', async () => {
-        // createList with list0
+        let listId = await this.contract.createList(list0, { from: listOwner })
+        expect(listId).to.be.bignumber.equal(0)
         // expect list ID in `lists` mapping
-        // expect ListCreated event with correct value
+        // ???
+        expectEvent(listId, 'ListCreated', { id: listId, owner: listOwner })
     })
 
     it('update a list', async () => {
-        // createList with list0
-        // expect list ID in `lists` state variable
-        // updateList with list1
-        // expect list ID in `lists` state variable
-        // expect ListUpdated event with correct value
+        let listId = await this.contract.createList(list0, { from: listOwner })
+        // expect list ID in `lists` mapping
+        // ???
+        await this.contract.updateList(list1, listId, { from: listOwner })
+        // expect list ID in `lists` mapping
+        // ???
+        expectEvent(listId, 'ListUpdated', { id: listId, owner: listOwner })
     })
 
     it('Non-owner attempts updateList', async () => {
-        // createList with list0 as listOwner
-        // expectRevert on updateList with list1 as listUser
+        let listId = await this.contract.createList(list0, { from: listOwner })
+        await expectRevert(
+            this.contract.updateList(list1, listId, { from: listUser }),
+            'Only the owner of this list can call this function.'
+        )
     })
 
     it('queryList for an existing value', async () => {
-        // createList with list0
-        // expect queryList returns true for input list0[1]
+        let listId = await this.contract.createList(list0, { from: listOwner })
+        let inList = await this.contract.queryList(listId, list0[1], { from: listUser })
+        expect(inList).to.equal(true)
     })
 
     it('queryList for a non-existing value', async () => {
-        // createList with list0
-        // expect queryList returns false for input extraAddress
+        let listId = await this.contract.createList(list0, { from: listOwner })
+        let inList = await this.contract.queryList(listId, extraAddress, { from: listUser })
+        expect(inList).to.equal(false)
     })
 
     it('queryList for a removed value after an update', async () => {
-        // createList with list0
-        // updateList with list1
-        // expect queryList returns false for input list0[1]
+        let listId = await this.contract.createList(list0, { from: listOwner })
+        await this.contract.updateList(list1, listId, { from: listOwner })
+        let inList = await this.contract.queryList(listId, list0[1], { from: listUser })
+        expect(inList).to.equal(false)
     })
 
     it('queryList for a new value after an update', async () => {
-        // createList with list0
-        // updateList with list1
-        // expect queryList returns true for input list1[1]
+        let listId = await this.contract.createList(list0, { from: listOwner })
+        await this.contract.updateList(list1, listId, { from: listOwner })
+        let inList = await this.contract.queryList(listId, list1[1], { from: listUser })
+        expect(inList).to.equal(true)
     })
 })
