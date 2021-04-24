@@ -5,22 +5,20 @@ pragma solidity >=0.8.0;
 /// @author Jonah Erlich, Ittai Svidler
 /// @notice This contract can be used to create, update, and query lists
 contract AddrList {
-    /// @dev Primary datastructure for storing a list
-    struct AddressSet {
-        address owner;
-        mapping (address => bool) contains;
-    }
+    
+    /// @dev Keeps track of list owners
+    mapping (uint32 => address) listOwners;
 
-    /// @dev Stores all lists maintained by the contract
-    mapping (uint32 => AddressSet) private lists;
+    /// @dev Maps list id => address => bool for O(1) access
+    mapping (uint32 => mapping(address => bool)) lists;
 
-    // @dev ID value assigned to newest list, incremented after use
+    /// @dev ID value assigned to newest list, incremented after use
     uint32 private listCount;
  
     /// @notice Restrict certain list actions to list owner
     /// @param _listId The id of the list in lists to check for ownership 
     modifier ownsList(uint32 _listId) { 
-        require(msg.sender == lists[_listId].owner, "Only the owner of this list can call this function."); 
+        require(msg.sender == listOwners[_listId], "Only the owner of this list can call this function."); 
         _; 
     }
 
@@ -29,7 +27,22 @@ contract AddrList {
     /// @notice Creates a new list
     /// @dev Sender of the transaction is the list owner
     /// @param _addresses The list of addresses to include in the list
-    function createList(address[] calldata _addresses) public returns(uint32) {}
+    function createList(address[] calldata _addresses) public returns(uint32) {
+
+        // You know what this does
+        listCount++;
+
+        // Set list owner
+        listOwners[listCount] = msg.sender;
+
+        // Create address set
+        for(uint i = 0; i < _addresses.length; i++) {
+            address addr = _addresses[i];
+            lists[listCount][addr] = true;
+        }
+
+        return listCount;
+    }
 
     /// @notice Replaces the values in a list with a new set of values
     /// @param _addresses The list of addresses to include in the list
