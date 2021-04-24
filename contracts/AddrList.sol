@@ -7,10 +7,10 @@ pragma solidity >=0.8.0;
 contract AddrList {
     
     /// @dev Keeps track of list owners
-    mapping (uint32 => address) listOwners;
+    mapping (uint32 => address) public listOwners;
 
     /// @dev Maps list id => address => bool for O(1) access
-    mapping (uint32 => mapping(address => bool)) lists;
+    mapping (uint32 => mapping(address => bool)) private lists;
 
     /// @dev ID value assigned to newest list, incremented after use
     uint32 private listCount;
@@ -23,13 +23,13 @@ contract AddrList {
     }
 
     /// TODO: Add events for createList (ListCreated) and updateList (ListUpdated)
+    event ListCreated(uint32 indexed listId, address indexed owner);
 
     /// @notice Creates a new list
     /// @dev Sender of the transaction is the list owner
     /// @param _addresses The list of addresses to include in the list
     function createList(address[] calldata _addresses) public returns(uint32) {
-
-        // You know what this does
+        // Increment counter for use as listId
         listCount++;
 
         // Set list owner
@@ -40,6 +40,8 @@ contract AddrList {
             address addr = _addresses[i];
             lists[listCount][addr] = true;
         }
+
+        emit ListCreated(listCount, msg.sender);
 
         return listCount;
     }
