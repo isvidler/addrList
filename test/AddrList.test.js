@@ -23,11 +23,16 @@ contract('AddrList', async accounts => {
 
     const extraAddress = '0x9fCE5CBE135a3c18c68B61b1f5505699B2c69Eb6'
 
-    it('create a list', async () => {
-        let creationObject = await this.contract.createList(list0, { from: listOwner })
-        let foundOwner = await this.contract.listOwners.call(1)
-        assert.equal(listOwner, foundOwner, "Incorrect listId")
-        expectEvent(creationObject, 'ListCreated', { listId: new BN('1'), owner: listOwner })
+    it('create lists', async () => {
+        const creationObject0 = await this.contract.createList(list0, { from: listOwner })
+        const foundOwner0 = await this.contract.listOwners.call(1)
+        assert.equal(listOwner, foundOwner0, "Incorrect listId")
+        expectEvent(creationObject0, 'ListCreated', { listId: new BN('1'), owner: listOwner })
+
+        const creationObject1 = await this.contract.createList(list0, { from: listUser })
+        const foundOwner1 = await this.contract.listOwners.call(2)
+        assert.equal(listUser, foundOwner1, "Incorrect listId")
+        expectEvent(creationObject1, 'ListCreated', { listId: new BN('2'), owner: listUser })
     })
 
     // it('update a list', async () => {
