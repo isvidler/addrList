@@ -14,12 +14,21 @@ contract AddrList {
 
     /// @dev ID value assigned to newest list, incremented after use
     uint32 private listCount;
+
+    // @dev Treasury address
+    address payable treasury;
  
     /// @notice Restrict certain list actions to list owner
     /// @param _listId The id of the list in lists to check for ownership 
     modifier ownsList(uint32 _listId) { 
         require(msg.sender == listOwners[_listId], "Only the owner of this list can call this function."); 
         _; 
+    }
+
+    constructor() {
+
+        // TODO: Set treasury address
+        treasury = payable(0);
     }
 
     /// TODO: Add events for createList (ListCreated) and updateList (ListUpdated)
@@ -55,7 +64,22 @@ contract AddrList {
     /// @dev List owner and contract developers are paid a small fee for this function
     /// @param _listId The ID of the list to query
     /// @param _address The address to check for in the list
-    function queryList(uint32 _listId, address _address) public payable {
+    function queryList(uint32 _listId, address _address) public payable returns(bool) {
 
+        require(listOwners[_listId] != address(0), "List does not exist");
+
+        uint listOwnerFee   = 1000000000000 wei;
+        uint treasuryFee    = 100000000000 wei;
+
+        require(msg.value == listOwnerFee + treasuryFee);
+
+        address payable listOwner = listOwners[_listId];
+        bool sentToListOwner = listOwner.send(listOwnerFee);
+        require(sentToListOwner, "Failed to send Ether to listOwner");
+
+        (bool sentToTreasury, bytes memory data1) = treasury.call{value: treasuryFee}("");
+        require(sentToTreasury, "Failed to send Ether to treasury");
+
+        return lists[_listId][_address];
     }
 }

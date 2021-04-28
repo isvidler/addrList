@@ -5,6 +5,8 @@ import "../contracts/AddrList.sol";
 
 contract TestAddrList {
 
+  uint public initialBalance = 1 ether;
+
   AddrList addrListContract;
 
   address[] list0 = [
@@ -36,5 +38,32 @@ contract TestAddrList {
 
     address listOwner1 = addrListContract.listOwners(id1);
     require(listOwner1 == address(this), "Second created list has an incorrect owner");
+  }
+
+  event addressValue(uint);
+
+  function testQueryList() public {
+   
+    // Create lists
+    uint32 id0 = addrListContract.createList(list0); 
+    uint32 id1 = addrListContract.createList(list1);
+
+    uint listOwnerFee   = 1000000000000 wei;
+    uint treasuryFee    = 100000000000 wei;
+
+    for(uint i = 0; i < list0.length; i++) {
+      address addr = list0[i];
+      bool addressInList = addrListContract.queryList{value: listOwnerFee + treasuryFee }(id0, addr);
+      require(addressInList, "queryList returned false for address in list0");
+    }
+
+    // require(!addrListContract.queryList(id0, list1[0]), "queryList returned true for address that isn't in list0");
+
+    // for(uint i = 0; i < list1.length; i++) {
+    //   address addr = list1[i];
+    //   require(addrListContract.queryList(id1, addr), string(abi.encodePacked("queryList returned false for address in list1: ", addr)));
+    // }
+
+    // require(!addrListContract.queryList(id1, list0[0]), "queryList returned true for address that isn't in list1");
   }
 }
