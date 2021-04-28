@@ -7,7 +7,7 @@ pragma solidity >=0.8.0;
 contract AddrList {
     
     /// @dev Keeps track of list owners
-    mapping (uint32 => address) public listOwners;
+    mapping (uint32 => address payable) public listOwners;
 
     /// @dev Maps list id => address => bool for O(1) access
     mapping (uint32 => mapping(address => bool)) private lists;
@@ -33,7 +33,7 @@ contract AddrList {
         listCount++;
 
         // Set list owner
-        listOwners[listCount] = msg.sender;
+        listOwners[listCount] = payable(msg.sender);
 
         // Create address set
         for(uint i = 0; i < _addresses.length; i++) {
@@ -55,5 +55,7 @@ contract AddrList {
     /// @dev List owner and contract developers are paid a small fee for this function
     /// @param _listId The ID of the list to query
     /// @param _address The address to check for in the list
-    function queryList(uint32 _listId, address _address) public payable {}
+    function queryList(uint32 _listId, address _address) public payable {
+
+    }
 }
