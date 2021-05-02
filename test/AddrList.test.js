@@ -6,7 +6,7 @@ const AddrList = artifacts.require('AddrList')
 contract('AddrList', async accounts => {
     const [ listOwner, listUser ] = accounts
 
-    beforeEach(async () => this.contract = await AddrList.deployed())
+    beforeEach(async () => this.contract = await AddrList.new())
         
     // Sample lists for use in test cases
     const list0 = [
@@ -36,10 +36,14 @@ contract('AddrList', async accounts => {
     })
 
     it('create lists with call', async () => {
-        const listId = await this.contract.createList.call(list0, { from: listOwner })
-        assert.equal(listId.toString(), (new BN('3')).toString(), "Incorrect listId")
-        const foundOwner = await this.contract.listOwners.call(listId)
-        assert.equal(foundOwner, listOwner, "Incorrect listOwner")
+        const listId0 = await this.contract.createList.call(list0, { from: listOwner })
+        assert.equal(listId0.toString(), (new BN('1')).toString(), "Incorrect listId")
+
+        // Run as transaction instead of call to modify state
+        await this.contract.createList(list0, { from: listOwner })
+
+        const listId1 = await this.contract.createList.call(list0, { from: listOwner })
+        assert.equal(listId1.toString(), (new BN('2')).toString(), "Incorrect listId")
     })
 
     // it('update a list', async () => {
