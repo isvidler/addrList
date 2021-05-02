@@ -26,13 +26,20 @@ contract('AddrList', async accounts => {
     it('create lists', async () => {
         const creationObject0 = await this.contract.createList(list0, { from: listOwner })
         const foundOwner0 = await this.contract.listOwners.call(1)
-        assert.equal(listOwner, foundOwner0, "Incorrect listId")
+        assert.equal(listOwner, foundOwner0, "Incorrect listOwner")
         expectEvent(creationObject0, 'ListCreated', { listId: new BN('1'), owner: listOwner })
 
         const creationObject1 = await this.contract.createList(list0, { from: listUser })
         const foundOwner1 = await this.contract.listOwners.call(2)
-        assert.equal(listUser, foundOwner1, "Incorrect listId")
+        assert.equal(listUser, foundOwner1, "Incorrect listOwner")
         expectEvent(creationObject1, 'ListCreated', { listId: new BN('2'), owner: listUser })
+    })
+
+    it('create lists with call', async () => {
+        const listId = await this.contract.createList.call(list0, { from: listOwner })
+        assert.equal(listId.toString(), (new BN('3')).toString(), "Incorrect listId")
+        const foundOwner = await this.contract.listOwners.call(listId)
+        assert.equal(foundOwner, listOwner, "Incorrect listOwner")
     })
 
     // it('update a list', async () => {
