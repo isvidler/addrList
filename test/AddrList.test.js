@@ -106,11 +106,11 @@ contract('AddrList', async accounts => {
         assert.equal(inList, true, 'Correct value mising from list')
     })
 
-    // it('queryList for a non-existing value', async () => {
-    //     let listId = await this.contract.createList(list0, { from: listOwner })
-    //     let inList = await this.contract.queryList(listId, extraAddress, { from: listUser })
-    //     expect(inList).to.equal(false)
-    // })
+    it('queryList for a non-existing value', async () => {
+        await this.contract.createList(list0, { from: listOwner })
+        let inList = await this.contract.queryList.call(1, extraAddress, { from: listUser, value: sumFee })
+        assert.equal(inList, false, 'List contains incorrect value')
+    })
 
     // it('queryList for a removed value after an update', async () => {
     //     let listId = await this.contract.createList(list0, { from: listOwner })
