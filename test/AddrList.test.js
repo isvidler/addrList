@@ -4,9 +4,12 @@ const { BN, expectEvent, expectRevert } = require('@openzeppelin/test-helpers')
 const AddrList = artifacts.require('AddrList')
 
 contract('AddrList', async accounts => {
-    const [ listOwner, listUser ] = accounts
+    const [ treasuryOwner, listOwner, listUser ] = accounts
 
-    beforeEach(async () => this.contract = await AddrList.new())
+    // queryList fee amounts in wei
+    const listOwnerFee = new BN('1000000000000')
+    const treasuryFee  = new BN('100000000000')
+    const sumFee = listOwnerFee.add(treasuryFee)
         
     // Sample lists for use in test cases
     const list0 = [
@@ -22,6 +25,8 @@ contract('AddrList', async accounts => {
     ]
 
     const extraAddress = '0x9fCE5CBE135a3c18c68B61b1f5505699B2c69Eb6'
+
+    beforeEach(async () => this.contract = await AddrList.new({ from: treasuryOwner }))
 
     it('create lists', async () => {
         const creationObject0 = await this.contract.createList(list0, { from: listOwner })
