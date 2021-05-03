@@ -69,11 +69,42 @@ contract('AddrList', async accounts => {
     //     )
     // })
 
-    // it('queryList for an existing value', async () => {
-    //     let listId = await this.contract.createList(list0, { from: listOwner })
-    //     let inList = await this.contract.queryList(listId, list0[1], { from: listUser })
-    //     expect(inList).to.equal(true)
-    // })
+    it('queryList payment settlement', async () => {
+        await this.contract.createList(list0, { from: listOwner })
+
+        // get balances before query
+        const preTreasuryBalance = new BN(await web3.eth.getBalance(treasuryOwner))
+        const preOwnerBalance = new BN(await web3.eth.getBalance(listOwner))
+        const preUserBalance = new BN(await web3.eth.getBalance(listUser))
+
+        // run the query
+        const queryObject = await this.contract.queryList(1, list0[1], { from: listUser, value: sumFee })
+
+        // get balances after query
+        const postTreasuryBalance = new BN(await web3.eth.getBalance(treasuryOwner))
+        const postOwnerBalance = new BN(await web3.eth.getBalance(listOwner))
+        const postUserBalance = new BN(await web3.eth.getBalance(listUser))
+
+        // calculate final cost to user
+        const gasCost = await calculateGasCost(queryObject)
+        const userCost = gasCost.add(sumFee)
+    
+        // calculate changes in account balances
+        const treasuryDiff = postTreasuryBalance.sub(preTreasuryBalance)
+        const ownerDiff = postOwnerBalance.sub(preOwnerBalance)
+        const userDiff = preUserBalance.sub(postUserBalance)
+
+        // assert that address balance differences reflect fees and gas paid
+        assert.equal(treasuryDiff.toString(), treasuryFee.toString(), "Treasury balance didn't change as expected")
+        assert.equal(ownerDiff.toString(), listOwnerFee.toString(), "Owner balance didn't change as expected")
+        assert.equal(userDiff.toString(), userCost.toString(), "User balance didn't change as expected")
+    })
+
+    it('queryList for an existing value', async () => {
+        await this.contract.createList(list0, { from: listOwner })
+        const inList = await this.contract.queryList.call(1, list0[1], { from: listUser, value: sumFee })
+        assert.equal(inList, true, 'Correct value mising from list')
+    })
 
     // it('queryList for a non-existing value', async () => {
     //     let listId = await this.contract.createList(list0, { from: listOwner })
@@ -95,3 +126,11 @@ contract('AddrList', async accounts => {
     //     expect(inList).to.equal(true)
     // })
 })
+
+// returns the amount spent in gas in a transaction as a BN
+async function calculateGasCost(txObject) {
+    const gasUsed = new BN(txObject.receipt.gasUsed)
+    const tx = await web3.eth.getTransaction(txObject.tx)
+    const gasPrice = new BN(tx.gasPrice)
+    return gasUsed.mul(gasPrice)
+}
