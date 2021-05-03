@@ -64,17 +64,16 @@ contract AddrList {
     /// @param _listId The ID of the list to query
     /// @param _address The address to check for in the list
     function queryList(uint32 _listId, address _address) public payable returns(bool) {
-
         require(listOwners[_listId] != address(0), "List does not exist");
 
         uint listOwnerFee   = 1000000000000 wei;
         uint treasuryFee    = 100000000000 wei;
 
-        require(msg.value == listOwnerFee + treasuryFee);
+        require(msg.value == listOwnerFee + treasuryFee, "Not enough wei sent");
 
         address payable listOwner = listOwners[_listId];
-        bool sentToListOwner = listOwner.send(listOwnerFee);
-        require(sentToListOwner, "Failed to send Ether to listOwner");
+        (bool sentToOwner, bytes memory data0) = listOwner.call{value: listOwnerFee}("");
+        require(sentToOwner, "Failed to send Ether to listOwner");
 
         (bool sentToTreasury, bytes memory data1) = treasury.call{value: treasuryFee}("");
         require(sentToTreasury, "Failed to send Ether to treasury");
