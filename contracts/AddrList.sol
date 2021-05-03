@@ -26,9 +26,8 @@ contract AddrList {
     }
 
     constructor() {
-
         // TODO: Set treasury address
-        treasury = payable(0);
+        treasury = payable(msg.sender);
     }
 
     /// TODO: Add events for createList (ListCreated) and updateList (ListUpdated)
