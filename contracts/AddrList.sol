@@ -33,6 +33,8 @@ contract AddrList {
     /// consider adding a non-indexed string for a canonical list name
     event ListCreated(uint32 indexed listId, address indexed owner);
 
+    event ListUpdated(uint32 indexed listId, address indexed owner);
+
     /// @notice Creates a new list
     /// @dev Sender of the transaction is the list owner
     /// @param _addresses The list of addresses to include in the list
@@ -54,10 +56,18 @@ contract AddrList {
         return listCount;
     }
 
-    /// @notice Replaces the values in a list with a new set of values
-    /// @param _addresses The list of addresses to include in the list
+    /// @notice Updates the values in the list
+    /// @param _addresses The list of addresses to modify. These are 
+    ///                   negated against the current value in the list.
     /// @param _listId The ID of the list to update
-    function updateList(address[] calldata _addresses, uint32 _listId) public ownsList(_listId) {}
+    function updateList(address[] calldata _addresses, uint32 _listId) public ownsList(_listId) {
+        for(uint i = 0; i < _addresses.length; i++) {
+            address addr = _addresses[i];
+            lists[_listId][addr] = !lists[_listId][addr];
+        }
+
+        emit ListUpdated(_listId, msg.sender);
+    }
     
     /// @notice Queries a list to see if it contains an address
     /// @dev List owner and contract developers are paid a small fee for this function
