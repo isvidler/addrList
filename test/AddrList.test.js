@@ -18,11 +18,19 @@ contract('AddrList', async accounts => {
         '0xfB33D47D33ac3992f7DEab5BFC9125E8a76479c1'
     ]
 
+    // unique values
     const list1 = [
         '0xf037D4a34ea5EfF733348dA7d7982acE2c1964a4',
         '0x5288C65b5Fd34b19A2FB5c3df2Ee7E3da3CDf586',
         '0x2438A0c626A5477783187181F057EeC1a1E0f717'
     ]
+
+    // first value overlaps with list0
+    const list2 = [
+        list0[1],
+        '0x070d87c7A24c52E1BF78f8aA1fEEb8829Dc0B97d',
+        '0x25630423fac7b0e3C1E9F2FeB010408fa1F04FEb'
+    ] 
 
     const extraAddress = '0x9fCE5CBE135a3c18c68B61b1f5505699B2c69Eb6'
 
@@ -52,8 +60,8 @@ contract('AddrList', async accounts => {
     })
 
     it('update a list', async () => {
-        await this.contract.createList(list0, { from: listOwner })
         const listId = new BN('1')
+        await this.contract.createList(list0, { from: listOwner })
 
         const updateEvent = await this.contract.updateList(list1, listId, { from: listOwner })
         expectEvent(updateEvent, 'ListUpdated', { listId: listId.toString(), owner: listOwner })
@@ -64,8 +72,8 @@ contract('AddrList', async accounts => {
     })
 
     it('non-owner attempts updateList', async () => {
-        await this.contract.createList(list0, { from: listOwner })
         const listId = new BN('1')
+        await this.contract.createList(list0, { from: listOwner })
 
         await expectRevert(
             this.contract.updateList(list1, listId, { from: listUser }),
@@ -120,19 +128,32 @@ contract('AddrList', async accounts => {
         assert.equal(inList, false, 'List contains incorrect value')
     })
 
-    // it('queryList for a removed value after an update', async () => {
-    //     let listId = await this.contract.createList(list0, { from: listOwner })
-    //     await this.contract.updateList(list1, listId, { from: listOwner })
-    //     let inList = await this.contract.queryList(listId, list0[1], { from: listUser })
-    //     expect(inList).to.equal(false)
-    // })
+    it('queryList for a removed value after an update', async () => {
+        const listId = new BN('1')
+        await this.contract.createList(list0, { from: listOwner })
+        await this.contract.updateList(list2, listId, { from: listOwner })
 
-    // it('queryList for a new value after an update', async () => {
-    //     let listId = await this.contract.createList(list0, { from: listOwner })
-    //     await this.contract.updateList(list1, listId, { from: listOwner })
-    //     let inList = await this.contract.queryList(listId, list1[1], { from: listUser })
-    //     expect(inList).to.equal(true)
-    // })
+        const inList = await this.contract.queryList.call(listId, list2[0], { from: listUser, value: sumFee })
+        assert.equal(inList, false, "updateList did not remove value")
+    })
+
+    it('queryList for a new value after an update', async () => {
+        const listId = new BN('1')
+        await this.contract.createList(list0, { from: listOwner })
+        await this.contract.updateList(list1, listId, { from: listOwner })
+
+        const inList = await this.contract.queryList.call(listId, list1[1], { from: listUser, value: sumFee })
+        assert.equal(inList, true, "updateList did not add value")
+    })
+
+    it('queryList for an unchanged value after an update', async () => {
+        const listId = new BN('1')
+        await this.contract.createList(list0, { from: listOwner })
+        await this.contract.updateList(list1, listId, { from: listOwner })
+
+        const inList = await this.contract.queryList.call(listId, list0[1], { from: listUser, value: sumFee })
+        assert.equal(inList, true, "updateList changed value")
+    })
 })
 
 // returns the amount spent in gas in a transaction as a BN
