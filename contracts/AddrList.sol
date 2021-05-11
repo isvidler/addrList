@@ -15,7 +15,7 @@ contract AddrList {
     /// @dev ID value assigned to newest list, incremented after use
     uint32 private listCount;
 
-    // @dev Treasury address
+    /// @dev Treasury address
     address payable treasury;
  
     /// @notice Restrict certain list actions to list owner
@@ -26,11 +26,11 @@ contract AddrList {
     }
 
     constructor() {
-        // TODO: Set treasury address
         treasury = payable(msg.sender);
     }
 
     /// TODO: Add events for createList (ListCreated) and updateList (ListUpdated)
+    /// consider adding a non-indexed string for a canonical list name
     event ListCreated(uint32 indexed listId, address indexed owner);
 
     /// @notice Creates a new list
