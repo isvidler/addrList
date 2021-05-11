@@ -51,23 +51,31 @@ contract('AddrList', async accounts => {
         assert.equal(listId1.toString(), (new BN('2')).toString(), "Incorrect listId")
     })
 
-    // it('update a list', async () => {
-    //     let listId = await this.contract.createList(list0, { from: listOwner })
-    //     // expect list ID in `lists` mapping
-    //     // ???
-    //     await this.contract.updateList(list1, listId, { from: listOwner })
-    //     // expect list ID in `lists` mapping
-    //     // ???
-    //     expectEvent(listId, 'ListUpdated', { id: listId, owner: listOwner })
-    // })
+    it('update a list', async () => {
+        await this.contract.createList(list0, { from: listOwner })
+        const listId = new BN('1')
 
-    // it('Non-owner attempts updateList', async () => {
-    //     let listId = await this.contract.createList(list0, { from: listOwner })
-    //     await expectRevert(
-    //         this.contract.updateList(list1, listId, { from: listUser }),
-    //         'Only the owner of this list can call this function.'
-    //     )
-    // })
+        const updateEvent = await this.contract.updateList(list1, listId, { from: listOwner })
+        expectEvent(updateEvent, 'ListUpdated', { listId: listId.toString(), owner: listOwner })
+
+        // simple existence check for updated value
+        const inList = await this.contract.queryList.call(listId, list1[1], { from: listUser, value: sumFee })
+        assert.equal(inList, true, "List did not update correctly")
+    })
+
+    it('non-owner attempts updateList', async () => {
+        await this.contract.createList(list0, { from: listOwner })
+        const listId = new BN('1')
+
+        await expectRevert(
+            this.contract.updateList(list1, listId, { from: listUser }),
+            'Only the owner of this list can call this function.'
+        )
+
+        // verifies that reverted update didn't change state
+        const inList = await this.contract.queryList.call(listId, list1[1], { from: listUser, value: sumFee })
+        assert.equal(inList, false, "Reverted update changed state")
+    })
 
     it('queryList payment settlement', async () => {
         await this.contract.createList(list0, { from: listOwner })
